@@ -11,7 +11,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: true,
+
     minify: 'terser',
     cssMinify: true,
     terserOptions: {
@@ -37,8 +37,7 @@ export default defineConfig({
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name ?? '';
           if (/\.(css)$/i.test(info)) return 'assets/[name]-[hash][extname]';
-          if (/\.(png|jpe?g|gif|svg|webp|avif)$/i.test(info))
-            return 'images/[name]-[hash][extname]';
+          if (/\.(png|jpe?g|gif|svg|webp|avif)$/i.test(info)) return 'images/[name]-[hash][extname]';
           return 'assets/[name]-[hash][extname]';
         },
       },
