@@ -236,6 +236,7 @@ export function setupPlayer(letterEls) {
   plush.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
+    plush.blur();
     togglePlayback();
   });
 
