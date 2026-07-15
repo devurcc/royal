@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maintenance | Take Your Time</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@1,900&family=Roboto+Mono:wght@700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --p5-red: #d81111;
+      --p5-red-dark: #8a0808;
+      --p5-black: #0a0a0a;
+      --p5-white: #f4f4f4;
+      --p5-cream: #e8e1d5;
+      --bg-min-w: 360px;
+      --bg-min-h: 600px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: var(--p5-black); }
+
+    body {
+      color: var(--p5-white);
+      font-family: 'Oswald', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-width: var(--bg-min-w);
+      min-height: var(--bg-min-h);
+      overflow: auto;
+      opacity: 0;
+    }
+
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-lines {
+      position: absolute;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(-45deg, transparent, transparent 60px, rgba(216,17,17,0.05) 60px, rgba(216,17,17,0.05) 62px);
+      opacity: 0;
+    }
+
+    .bg-burst {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, rgba(216,17,17,0.22) 0%, transparent 50%);
+      transition: background 0.5s ease-out;
+    }
+
+    .bg-video {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.6s ease-out;
+      overflow: hidden;
+    }
+
+    body.video-active .bg-video { opacity: 1; }
+
+    .bg-video iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 56.25vw;
+      min-width: 177.78vh;
+      min-height: 100vh;
+      transform: translate(-50%, -50%) scale(1.15);
+      border: none;
+      filter: grayscale(0.7) contrast(1.6) brightness(0.25) sepia(0.55) hue-rotate(330deg) saturate(2);
+      pointer-events: none;
+    }
+
+    .bg-video::before {
+      content: '';
+      position: absolute;
+      inset: -100%;
+      width: 300%;
+      height: 300%;
+      z-index: 1;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 0%, rgba(10,10,10,0.55) 60%, rgba(10,10,10,0.92) 100%),
+        repeating-linear-gradient(-45deg, rgba(216,17,17,0.18) 0, rgba(216,17,17,0.18) 3px, transparent 3px, transparent 32px),
+        repeating-linear-gradient(45deg, rgba(216,17,17,0.12) 0, rgba(216,17,17,0.12) 3px, transparent 3px, transparent 48px);
+      pointer-events: none;
+      animation: p5rLines 12s linear infinite;
+    }
+
+    @keyframes p5rLines {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(32px, 32px); }
+    }
+
+    .bg-video::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background:
+        linear-gradient(135deg, rgba(10,10,10,0.98) 0%, rgba(10,10,10,0.85) 35%, rgba(138,8,8,0.35) 65%, rgba(216,17,17,0.25) 100%),
+        linear-gradient(to bottom, rgba(216,17,17,0.12) 0%, transparent 8%, transparent 92%, rgba(216,17,17,0.12) 100%);
+      pointer-events: none;
+    }
+
+    body.video-active .bg-burst {
+      background: radial-gradient(circle at 50% 45%, rgba(216,17,17,0.55) 0%, transparent 55%);
+    }
+
+    .audio-player {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      color: var(--p5-red);
+      font-size: 1.2rem;
+      transition: color 0.5s ease-out;
+    }
+
+    .corner-stars {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+    }
+
+    .star {
+      position: absolute;
+      color: var(--p5-red);
+      font-size: 2rem;
+      transition: color 0.5s ease-out;
+    }
+    .star.top-left { top: 5%; left: 5%; }
+    .star.top-right { top: 8%; right: 7%; }
+    .star.bottom-left { bottom: 10%; left: 8%; }
+    .star.bottom-right { bottom: 7%; right: 5%; }
+
+    .stage {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      min-width: 340px;
+      min-height: 560px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      perspective: 900px;
+    }
+
+    .plush-wrap {
+      position: relative;
+      width: 240px;
+      height: 280px;
+      margin: 0 auto 1.2rem;
+      z-index: 11;
+      opacity: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease-out;
+    }
+
+    .plush-wrap:active { transform: scale(0.96); }
+
+    .plush {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 28px rgba(216,17,17,0.45));
+    }
+
+    .letters {
+      --reveal: 0%;
+      position: relative;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.2rem 0.3rem;
+      font-size: clamp(1rem, 5vw, 60px);
+      line-height: 1.1;
+      font-weight: 900;
+      text-transform: uppercase;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
+    .letter {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.05em;
+      min-height: 1.05em;
+      padding: 0.15em 0.18em;
+      color: var(--p5-white);
+      opacity: 0;
+      will-change: transform, opacity;
+      flex-shrink: 0;
+      transform-origin: center center;
+    }
+
+    .letter > span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      transform-origin: center center;
+    }
+
+    .letter .mono {
+      position: absolute;
+      inset: 0;
+      filter: grayscale(1) brightness(0.5);
+      opacity: 0;
+      pointer-events: none;
+      clip-path: inset(0 0 0 0);
+      transition: opacity 0.15s ease-out;
+    }
+
+    body.playing .letter .mono { opacity: 1; }
+
+    .style-0  { font-family: 'Bebas Neue', sans-serif; transform: rotate(-8deg) skewX(-6deg); }
+    .style-0 .color, .style-0 .mono > span { background: var(--p5-black); }
+
+    .style-1  { font-family: 'Playfair Display', serif; font-style: italic; transform: rotate(6deg) skewX(4deg); }
+    .style-1 .color, .style-1 .mono > span { background: var(--p5-white); color: var(--p5-black); }
+
+    .style-2  { font-family: 'Roboto Mono', monospace; text-transform: lowercase; transform: rotate(-5deg) skewX(8deg); }
+    .style-2 .color, .style-2 .mono > span { background: var(--p5-red); color: var(--p5-white); }
+
+    .style-3  { font-family: 'Rubik Mono One', sans-serif; transform: rotate(9deg) skewX(-5deg); }
+    .style-3 .color, .style-3 .mono > span { background: var(--p5-black); color: var(--p5-red); }
+
+    .style-4  { font-family: 'Oswald', sans-serif; transform: rotate(-7deg) skewX(-8deg); }
+    .style-4 .color, .style-4 .mono > span { background: var(--p5-white); color: var(--p5-black); }
+
+    .style-5  { font-family: 'Bebas Neue', sans-serif; transform: rotate(4deg) skewX(6deg); }
+    .style-5 .color, .style-5 .mono > span { background: var(--p5-black); }
+
+    .style-6  { font-family: 'Playfair Display', serif; font-style: italic; transform: rotate(-6deg) skewX(-3deg); }
+    .style-6 .color, .style-6 .mono > span { background: var(--p5-red); color: var(--p5-white); }
+
+    .style-7  { font-family: 'Roboto Mono', monospace; transform: rotate(7deg) skewX(5deg); }
+    .style-7 .color, .style-7 .mono > span { background: var(--p5-white); color: var(--p5-black); }
+
+    .style-8  { font-family: 'Rubik Mono One', sans-serif; transform: rotate(-4deg) skewX(-7deg); }
+    .style-8 .color, .style-8 .mono > span { background: var(--p5-black); color: var(--p5-red); }
+
+    .style-9  { font-family: 'Oswald', sans-serif; transform: rotate(8deg) skewX(4deg); }
+    .style-9 .color, .style-9 .mono > span { background: var(--p5-red); color: var(--p5-white); }
+
+    .style-10 { font-family: 'Bebas Neue', sans-serif; transform: rotate(-3deg) skewX(-6deg); }
+    .style-10 .color, .style-10 .mono > span { background: var(--p5-white); color: var(--p5-black); }
+
+    .subtitle { display: none; }
+
+    .message {
+      margin-top: 1.2rem;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.95rem, 2.8vw, 1.35rem);
+      color: rgba(244,244,244,0.9);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.7;
+      text-shadow:
+        3px 3px 0 var(--p5-red),
+        -1px -1px 0 rgba(216,17,17,0.45),
+        1px -1px 0 rgba(216,17,17,0.35),
+        -1px 1px 0 rgba(216,17,17,0.35),
+        1px 1px 0 rgba(216,17,17,0.35),
+        0 0 22px rgba(216,17,17,0.55);
+      opacity: 0;
+    }
+
+    @media (max-width: 600px) {
+      .plush-wrap { width: 170px; height: 200px; }
+      .letters { gap: 0.15rem 0.25rem; }
+    }
+
+    body.playing .bg-burst {
+      background: radial-gradient(circle at 50% 45%, rgba(216,17,17,0.45) 0%, transparent 50%);
+    }
+
+    body.playing .particle { color: var(--p5-cream); }
+    body.playing .star { color: var(--p5-cream); }
+
+    .player-hint {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(244,244,244,0.7);
+      opacity: 1;
+      margin-top: 1.2rem;
+      text-decoration: none;
+      transition: color 0.2s ease-out, opacity 0.3s ease-out;
+      cursor: default;
+    }
+
+    .player-hint.has-title {
+      color: var(--p5-red);
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(216,17,17,0.5);
+    }
+
+    .player-hint.has-title:hover {
+      color: #ff3b3b;
+      text-decoration-color: var(--p5-red);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="bg-layer">
+    <div class="bg-lines"></div>
+    <div class="bg-burst"></div>
+    <div class="bg-video" id="bgVideo" aria-hidden="true"><div id="bgVideoHost"><div id="bgVideoPlayer"></div></div></div>
+    <div class="audio-player" id="audioPlayer" aria-hidden="true"><div id="audioHost"><div id="audioPlayerPlayer"></div></div></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="corner-stars">
+      <span class="star top-left">★</span>
+      <span class="star top-right">★</span>
+      <span class="star bottom-left">★</span>
+      <span class="star bottom-right">★</span>
+    </div>
+  </div>
+
+    <main class="stage">
+      <div class="plush-wrap">
+        <img class="plush" src="plush.png" alt="Plush logo" />
+      </div>
+
+      <div class="letters" id="letters">
+      <span class="letter" data-letter="M"><span class="color">M</span><span class="mono"><span>M</span></span></span>
+      <span class="letter" data-letter="A"><span class="color">A</span><span class="mono"><span>A</span></span></span>
+      <span class="letter" data-letter="I"><span class="color">I</span><span class="mono"><span>I</span></span></span>
+      <span class="letter" data-letter="N"><span class="color">N</span><span class="mono"><span>N</span></span></span>
+      <span class="letter" data-letter="T"><span class="color">T</span><span class="mono"><span>T</span></span></span>
+      <span class="letter" data-letter="E"><span class="color">E</span><span class="mono"><span>E</span></span></span>
+      <span class="letter" data-letter="N"><span class="color">N</span><span class="mono"><span>N</span></span></span>
+      <span class="letter" data-letter="A"><span class="color">A</span><span class="mono"><span>A</span></span></span>
+      <span class="letter" data-letter="N"><span class="color">N</span><span class="mono"><span>N</span></span></span>
+      <span class="letter" data-letter="C"><span class="color">C</span><span class="mono"><span>C</span></span></span>
+      <span class="letter" data-letter="E"><span class="color">E</span><span class="mono"><span>E</span></span></span>
+    </div>
+
+      <a class="player-hint" id="playerHint" href="#" target="_blank" rel="noopener noreferrer">Click plush to play</a>
+
+      <p class="subtitle" id="subtitle">Take your time</p>
+      <p class="message" id="message">The site is under maintenance.<br>We'll steal your heart again soon.</p>
+    </main>
+
+  <script src="./anime.min.js"></script>
+  <script>
+    const messages = [
+      'The site is catching its breath.<br>Put your feet up and enjoy the music.',
+      'We’re tuning up the servers.<br>Lean back and let the track play.',
+      'Maintenance in progress.<br>Take this moment to relax.',
+      'Everything’s under control.<br>Sit back, press play, and unwind.',
+      'The world can wait three minutes.<br>Close your eyes and listen.',
+      'Servers are recharging.<br>You do the same.',
+      'The backstage is busy.<br>You stay in the front row, relaxed.',
+      'Code is taking a breather.<br>Grab yours too.',
+      'We’ll be back before the track ends.<br>Just breathe.',
+      'No heists today. Just maintenance.<br>Enjoy the downtime.'
+    ];
+    const messageEl = document.getElementById('message');
+    messageEl.innerHTML = messages[Math.floor(Math.random() * messages.length)];
+
+    const letters = document.getElementById('letters');
+    const letterEls = Array.from(letters.querySelectorAll('.letter'));
+
+    const letterStyleClasses = ['style-0', 'style-1', 'style-2', 'style-3', 'style-4', 'style-5', 'style-6', 'style-7', 'style-8', 'style-9', 'style-10'];
+
+    function shuffleStyles(arr) {
+      const pool = arr.slice();
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool;
+    }
+
+    function applyRandomLetterStyles() {
+      const shuffled = shuffleStyles(letterStyleClasses);
+      letterEls.forEach((letter, i) => {
+        letter.className = 'letter';
+        if (shuffled[i]) letter.classList.add(shuffled[i]);
+      });
+    }
+    applyRandomLetterStyles();
+
+    const particleContainer = document.getElementById('particles');
+    const shapes = ['★', '✦', '✶', '●', '▲', '◆'];
+    for (let i = 0; i < 24; i++) {
+      const p = document.createElement('span');
+      p.className = 'particle';
+      p.textContent = shapes[i % shapes.length];
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 100 + '%';
+      p.style.fontSize = (0.6 + Math.random() * 1.4) + 'rem';
+      p.style.opacity = 0.15 + Math.random() * 0.5;
+      particleContainer.appendChild(p);
+    }
+
+    function applyLetterClipPaths(revealPct) {
+      const containerRect = letters.getBoundingClientRect();
+      const totalWidth = containerRect.width;
+      const revealPx = (revealPct / 100) * totalWidth;
+
+      letterEls.forEach(letter => {
+        const rect = letter.getBoundingClientRect();
+        const left = rect.left - containerRect.left;
+        const right = left + rect.width;
+        const mono = letter.querySelector('.mono');
+
+        if (revealPx <= left) {
+          mono.style.clipPath = 'inset(0 0 0 0)';
+        } else if (revealPx >= right) {
+          mono.style.clipPath = 'inset(0 0 0 100%)';
+        } else {
+          const visible = ((right - revealPx) / rect.width) * 100;
+          mono.style.clipPath = `inset(0 0 0 ${100 - visible}%)`;
+        }
+      });
+    }
+
+    function startAnimations() {
+      const tl = anime.timeline({ easing: 'easeOutExpo' });
+
+      tl
+      .add({ targets: '.bg-lines', opacity: [0, 1], scale: [1.1, 1], rotate: [5, 0], duration: 1400 })
+      .add({ targets: '.plush-wrap', translateY: [120, 0], opacity: [0, 1], rotate: [-15, 0], duration: 1100 }, '-=900')
+      .add({
+        targets: '.letter',
+        translateY: [-60, 0],
+        scale: [0.88, 1],
+        opacity: [0, 1],
+        delay: anime.stagger(80),
+        duration: 900,
+        easing: 'easeOutElastic(1, .55)'
+      }, '-=600')
+      .add({ targets: '#message', opacity: [0, 1], translateY: [40, 0], duration: 900 }, '-=400')
+      .add({ targets: '.star', scale: [0, 1], rotate: [0, 360], opacity: [0, 1], delay: anime.stagger(120), duration: 700, easing: 'easeOutBack' }, '-=700');
+
+      anime({ targets: '.plush-wrap', translateY: [0, -14], rotate: [0, 2], duration: 2600, direction: 'alternate', loop: true, easing: 'easeInOutSine' });
+
+      letterIdle = anime({
+        targets: '.letter',
+        translateY: [0, -4],
+        scale: [1, 1.01],
+        rotate: [-1, 1],
+        duration: 1600,
+        delay: anime.stagger(80),
+        direction: 'alternate',
+        loop: true,
+        easing: 'easeInOutSine'
+      });
+
+      letterJitter = anime({
+        targets: '.letter',
+        translateY: () => anime.random(-15, 15) / 10,
+        rotate: () => anime.random(-15, 15) / 10,
+        scale: () => anime.random(995, 1005) / 1000,
+        duration: () => anime.random(120, 260),
+        delay: anime.stagger(40, { from: 'random' }),
+        direction: 'alternate',
+        loop: true,
+        easing: 'easeInOutQuad'
+      });
+
+      anime({ targets: '.bg-burst', opacity: [0.2, 0.45], scale: [1, 1.08], duration: 3200, direction: 'alternate', loop: true, easing: 'easeInOutSine' });
+      anime({ targets: '.star', scale: [1, 1.25], rotate: [0, 30], duration: 1500, direction: 'alternate', loop: true, easing: 'easeInOutSine', delay: anime.stagger(300) });
+      anime({
+        targets: '.particle',
+        translateY: [-30, 30],
+        translateX: [-20, 20],
+        rotate: [0, 180],
+        opacity: [0.1, 0.6],
+        duration: () => anime.random(4000, 7000),
+        delay: anime.stagger(200),
+        direction: 'alternate',
+        loop: true,
+        easing: 'easeInOutSine'
+      });
+
+      let rafId;
+      document.addEventListener('mousemove', (e) => {
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+          const x = (e.clientX / window.innerWidth - 0.5) * 12;
+          const y = (e.clientY / window.innerHeight - 0.5) * 8;
+          anime({ targets: '.letters', rotateY: x, rotateX: -y, duration: 400, easing: 'easeOutQuad' });
+          rafId = null;
+        });
+      });
+    }
+
+    let letterIdle = null;
+    let letterJitter = null;
+    let playerBeat = null;
+    let playerGlow = null;
+    let playerAmbient = null;
+    let isPlaying = false;
+    let playlistReady = false;
+    let playlistPromise = null;
+
+    const defaultPlaylist = [
+      { id: 'JhEL_OQfz2w', background: false },
+      { id: 'jKYB5P5g2Uc', background: false },
+      { id: 'rka7nbZrE_M', background: true }
+    ];
+    let playlist = defaultPlaylist.slice();
+
+    function getPlayedIds() {
+      try {
+        const raw = localStorage.getItem('p5r-played-ids');
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function setPlayedIds(ids) {
+      try {
+        localStorage.setItem('p5r-played-ids', JSON.stringify(ids));
+      } catch (e) {}
+    }
+
+    function pickNextPseudoRandomTrack() {
+      const played = getPlayedIds();
+      let available = playlist.filter(t => !played.includes(t.id));
+      if (available.length === 0) {
+        setPlayedIds([]);
+        available = playlist.slice();
+      }
+      const next = available[Math.floor(Math.random() * available.length)];
+      return playlist.findIndex(t => t.id === next.id);
+    }
+
+    function markTrackPlayed(id) {
+      const played = getPlayedIds();
+      if (!played.includes(id)) {
+        played.push(id);
+        setPlayedIds(played);
+      }
+    }
+
+    async function loadPlaylist() {
+      if (playlistReady) return;
+      if (playlistPromise) return playlistPromise;
+      playlistPromise = (async () => {
+        try {
+          const response = await fetch('https://gist.githubusercontent.com/devurcc/0e781b8eb7829d0fc73bcbfc0d9ae2a2/raw/maintenance_playlist.json');
+          if (!response.ok) throw new Error('network');
+          const data = await response.json();
+          if (Array.isArray(data.tracks) && data.tracks.length > 0) {
+            playlist = data.tracks.map(t => ({ id: String(t.id), background: !!t.background }));
+          }
+        } catch (e) {
+          console.warn('Failed to load playlist from gist, using default:', e);
+        }
+        shufflePlaylist();
+        playlistReady = true;
+      })();
+      return playlistPromise;
+    }
+
+    function shufflePlaylist() {
+      for (let i = playlist.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
+      }
+    }
+
+    function setupPlayer() {
+      const plush = document.querySelector('.plush-wrap');
+      const body = document.body;
+      const playerHint = document.getElementById('playerHint');
+
+      function setHint(text, href, isTitle) {
+        playerHint.textContent = text;
+        if (href) {
+          playerHint.href = href;
+          playerHint.classList.add('has-title');
+          playerHint.style.cursor = 'pointer';
+        } else {
+          playerHint.href = '#';
+          playerHint.classList.remove('has-title');
+          playerHint.style.cursor = 'default';
+        }
+      }
+
+      async function fetchTitle(videoId) {
+        try {
+          const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+          if (!res.ok) throw new Error('noembed failed');
+          const data = await res.json();
+          if (data.title) return data.title;
+        } catch (e) {
+          console.warn('Could not fetch title via noembed:', e);
+        }
+        if (player && player.getVideoData) {
+          try {
+            const data = player.getVideoData();
+            if (data && data.title) return data.title;
+          } catch (e) {}
+        }
+        return 'YouTube track';
+      }
+
+      function updateHintForTrack(id) {
+        const url = `https://www.youtube.com/watch?v=${id}`;
+        fetchTitle(id).then(title => {
+          setHint(title, url, true);
+        });
+      }
+
+      let player = null;
+      let currentIndex = 0;
+      let currentTrack = null;
+      let timeupdateInterval = null;
+
+      function loadYouTubeAPI() {
+        return new Promise((resolve) => {
+          if (window.YT && window.YT.Player) return resolve(window.YT);
+          const tag = document.createElement('script');
+          tag.src = 'https://www.youtube.com/iframe_api';
+          document.head.appendChild(tag);
+          window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+        });
+      }
+
+      function updateProgress() {
+        if (!player || !player.getDuration || !currentTrack) return;
+        const duration = player.getDuration();
+        const currentTime = player.getCurrentTime ? player.getCurrentTime() : 0;
+        if (!duration) return;
+        const reveal = (currentTime / duration) * 100;
+        letters.style.setProperty('--reveal', `${reveal}%`);
+        applyLetterClipPaths(reveal);
+      }
+
+      function clearPlayer() {
+        if (timeupdateInterval) { clearInterval(timeupdateInterval); timeupdateInterval = null; }
+        if (player) { try { player.destroy(); } catch (e) {} player = null; }
+        document.getElementById('bgVideoHost').innerHTML = '<div id="bgVideoPlayer"></div>';
+        document.getElementById('audioHost').innerHTML = '<div id="audioPlayerPlayer"></div>';
+      }
+
+      async function loadTrack(index) {
+        clearPlayer();
+        markTrackPlayed(playlist[index].id);
+        currentTrack = playlist[index];
+        const isBackground = currentTrack.background;
+        const hostEl = document.getElementById(isBackground ? 'bgVideoPlayer' : 'audioPlayerPlayer');
+
+        if (isBackground) {
+          body.classList.add('video-active');
+        } else {
+          body.classList.remove('video-active');
+        }
+
+        const YT = await loadYouTubeAPI();
+
+        await new Promise((resolve) => {
+          player = new YT.Player(hostEl, {
+            width: isBackground ? window.innerWidth : 1,
+            height: isBackground ? window.innerHeight : 1,
+            videoId: currentTrack.id,
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              modestbranding: 1,
+              rel: 0,
+              playsinline: 1,
+              iv_load_policy: 3,
+              wmode: 'opaque',
+              origin: window.location.origin,
+              showinfo: 0,
+              autoplay: 1
+            },
+            events: {
+              onReady: (event) => {
+                const p = event.target;
+                player = p;
+                p.setVolume(30);
+                if (p.setPlaybackQuality) {
+                  p.setPlaybackQuality(isBackground ? 'hd1080' : 'hd720');
+                }
+                body.classList.add('loaded-audio');
+                updateHintForTrack(currentTrack.id);
+                resolve();
+              },
+              onStateChange: (event) => {
+                if (event.data === window.YT.PlayerState.PLAYING) {
+                  isPlaying = true;
+                  body.classList.add('playing');
+                  plush.classList.add('playing');
+                  if (letterIdle) letterIdle.pause();
+                  if (letterJitter) letterJitter.pause();
+                  startPlayerAnimations();
+                  if (!timeupdateInterval) timeupdateInterval = setInterval(updateProgress, 100);
+                } else if (event.data === window.YT.PlayerState.PAUSED) {
+                  isPlaying = false;
+                  body.classList.remove('playing');
+                  plush.classList.remove('playing');
+                  if (timeupdateInterval) { clearInterval(timeupdateInterval); timeupdateInterval = null; }
+                  stopPlayerAnimations();
+                } else if (event.data === window.YT.PlayerState.ENDED) {
+                  currentIndex = pickNextPseudoRandomTrack();
+                  loadTrack(currentIndex);
+                }
+              },
+              onError: (event) => {
+                console.error('YT player error:', event.data);
+                currentIndex = (currentIndex + 1) % playlist.length;
+                loadTrack(currentIndex);
+              }
+            }
+          });
+        });
+      }
+
+      plush.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await loadPlaylist();
+        if (!player) {
+          currentIndex = pickNextPseudoRandomTrack();
+          loadTrack(currentIndex).then(() => {
+            if (player && player.playVideo) player.playVideo();
+          });
+          return;
+        }
+        const state = player.getPlayerState ? player.getPlayerState() : -1;
+        if (state === window.YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+        } else {
+          player.playVideo();
+        }
+      });
+
+      plush.addEventListener('touchstart', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await loadPlaylist();
+        if (!player) {
+          currentIndex = pickNextPseudoRandomTrack();
+          loadTrack(currentIndex).then(() => {
+            if (player && player.playVideo) player.playVideo();
+          });
+          return;
+        }
+        const state = player.getPlayerState ? player.getPlayerState() : -1;
+        if (state === window.YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+        } else {
+          player.playVideo();
+        }
+      }, { passive: false });
+
+      function startPlayerAnimations() {
+        if (playerBeat && playerBeat.play) playerBeat.play();
+        else {
+          playerBeat = anime({
+            targets: '.plush-wrap',
+            scale: [1, 1.04],
+            translateY: [0, -10],
+            duration: 520,
+            direction: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine'
+          });
+        }
+
+        if (playerGlow && playerGlow.play) playerGlow.play();
+        else {
+          playerGlow = anime({
+            targets: '.plush',
+            filter: [
+              'drop-shadow(0 0 28px rgba(216,17,17,0.45))',
+              'drop-shadow(0 0 48px rgba(216,17,17,0.85))',
+              'drop-shadow(0 0 28px rgba(216,17,17,0.45))'
+            ],
+            duration: 1040,
+            loop: true,
+            easing: 'easeInOutSine'
+          });
+        }
+
+        anime({
+          targets: '.bg-burst',
+          opacity: [0.35, 0.7],
+          scale: [1, 1.15],
+          duration: 1040,
+          direction: 'alternate',
+          loop: true,
+          easing: 'easeInOutSine'
+        });
+
+        if (playerAmbient && playerAmbient.play) playerAmbient.play();
+        else {
+          playerAmbient = anime({
+            targets: '.letter',
+            translateY: () => anime.random(-70, 70) / 10,
+            rotate: () => anime.random(-55, 55) / 10,
+            scale: () => anime.random(1002, 1015) / 1000,
+            duration: () => anime.random(220, 420),
+            delay: anime.stagger(50, { from: 'center' }),
+            direction: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine'
+          });
+        }
+      }
+
+      function stopPlayerAnimations() {
+        if (playerBeat) { playerBeat.pause(); }
+        if (playerGlow) { playerGlow.pause(); }
+        if (playerAmbient) { playerAmbient.pause(); }
+
+        if (letterIdle) letterIdle.play();
+        if (letterJitter) letterJitter.play();
+
+        letterEls.forEach(letter => {
+          letter.querySelector('.mono').style.clipPath = 'inset(0 0 0 0)';
+        });
+
+        anime({
+          targets: '.letter',
+          translateY: 0,
+          rotate: 0,
+          skewX: 0,
+          scaleX: 1,
+          scaleY: 1,
+          scale: 1,
+          duration: 400,
+          easing: 'easeOutQuad',
+          complete: () => {
+            letterEls.forEach(l => {
+              l.style.transform = '';
+              l.querySelector('.color').style.transform = '';
+              l.querySelector('.mono').style.transform = '';
+            });
+          }
+        });
+
+        anime({
+          targets: '.plush',
+          filter: 'drop-shadow(0 0 28px rgba(216,17,17,0.45))',
+          duration: 400,
+          easing: 'easeOutQuad'
+        });
+
+        anime({
+          targets: '.plush-wrap',
+          translateY: [0, -14],
+          rotate: [0, 2],
+          scale: 1,
+          duration: 2600,
+          direction: 'alternate',
+          loop: true,
+          easing: 'easeInOutSine'
+        });
+
+        anime({
+          targets: '.bg-burst',
+          opacity: [0.2, 0.45],
+          scale: [1, 1.08],
+          duration: 3200,
+          direction: 'alternate',
+          loop: true,
+          easing: 'easeInOutSine'
+        });
+      }
+    }
+
+    function run() {
+      if (document.readyState === 'complete') {
+        loadPlaylist().then(() => anime({ targets: 'body', opacity: [0, 1], duration: 700, easing: 'linear', complete: () => { startAnimations(); setupPlayer(); } }));
+      } else {
+        window.addEventListener('load', () => {
+          loadPlaylist().then(() => anime({ targets: 'body', opacity: [0, 1], duration: 700, easing: 'linear', complete: () => { startAnimations(); setupPlayer(); } }));
+        });
+      }
+    }
+    run();
+  </script>
+</body>
+</html>
