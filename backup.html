@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Take your time. The site is under maintenance." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Maintenance | Take Your Time</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@1,900&family=Roboto+Mono:wght@700&family=Rubik+Mono+One&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body style="opacity: 0">
+    <div class="bg-layer">
+      <div class="bg-lines"></div>
+      <div class="bg-burst"></div>
+      <div class="bg-video" id="bgVideo" aria-hidden="true">
+        <div id="bgVideoHost"><div id="bgVideoPlayer"></div></div>
+      </div>
+      <div class="audio-player" id="audioPlayer" aria-hidden="true">
+        <div id="audioHost"><div id="audioPlayerPlayer"></div></div>
+      </div>
+      <div class="particles" id="particles"></div>
+
+      <div class="corner-stars">
+        <span class="star top-left">★</span>
+        <span class="star top-right">★</span>
+        <span class="star bottom-left">★</span>
+        <span class="star bottom-right">★</span>
+      </div>
+    </div>
+
+    <main class="stage">
+      <button class="plush-wrap" type="button" aria-label="Play or pause background music">
+        <picture>
+          <source srcset="/plush.webp" type="image/webp" />
+          <img class="plush" src="/plush.png" alt="Plush logo" width="240" height="280" />
+        </picture>
+      </button>
+
+      <div class="letters" id="letters" aria-label="Maintenance"></div>
+
+      <a class="player-hint" id="playerHint" href="#" target="_blank" rel="noopener noreferrer">Click plush to play</a>
+
+      <p class="message" id="message">
+        The site is under maintenance.
+        <br />
+        We'll be back with you shortly.
+      </p>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

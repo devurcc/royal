@@ -10,6 +10,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/styles/player.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -29,6 +30,8 @@
       </div>
       <div class="particles" id="particles"></div>
 
+      <div class="video-overlay-gradient" id="videoOverlayGradient" aria-hidden="true"></div>
+
       <div class="corner-stars">
         <span class="star top-left">★</span>
         <span class="star top-right">★</span>
@@ -37,18 +40,49 @@
       </div>
     </div>
 
+    <div class="player-shape" id="playerShape">
+      <div class="player-shape__scale" id="playerShapeScale">
+        <svg class="player-shape__svg" viewBox="0 0 760 200" preserveAspectRatio="none">
+          <polygon class="player-shape__poly" points="0,200 0,200 0,200 0,200 0,200" />
+        </svg>
+        <div class="player-shape__content">
+          <button class="plush-wrap" type="button" aria-label="Play or pause background music">
+            <picture>
+              <source srcset="/plush.webp" type="image/webp" />
+              <img class="plush" src="/plush.png" alt="Plush logo" width="240" height="280" />
+            </picture>
+          </button>
+
+          <div class="player-body">
+            <div class="letters-shell">
+              <div class="letters-shell__inner">
+                <div class="letters" id="letters" aria-label="Maintenance"></div>
+              </div>
+            </div>
+
+            <div class="player-row">
+              <a class="player-title" id="playerTitle" href="#" target="_blank" rel="noopener noreferrer">
+                <span class="player-title__text" id="playerTitleText">Click plush to play</span>
+              </a>
+              <div class="player-controls" id="playerControls">
+                <button class="player-btn prev" type="button" aria-label="Previous track">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
+                </button>
+                <button class="player-btn play" type="button" aria-label="Play or pause">
+                  <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                  <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                </button>
+                <button class="player-btn next" type="button" aria-label="Next track">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <main class="stage">
-      <button class="plush-wrap" type="button" aria-label="Play or pause background music">
-        <picture>
-          <source srcset="/plush.webp" type="image/webp" />
-          <img class="plush" src="/plush.png" alt="Plush logo" width="240" height="280" />
-        </picture>
-      </button>
-
-      <div class="letters" id="letters" aria-label="Maintenance"></div>
-
-      <a class="player-hint" id="playerHint" href="#" target="_blank" rel="noopener noreferrer">Click plush to play</a>
-
       <p class="message" id="message">
         The site is under maintenance.
         <br />
@@ -56,6 +90,6 @@
       </p>
     </main>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/player-main.js"></script>
   </body>
 </html>
